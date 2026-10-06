@@ -4,38 +4,56 @@ Mã học viên: **2A202602415**
 
 Link notebook đã chạy: https://github.com/hongcuong26-debug/Track04-Day18-2D-perception-detection-segmentation-keypoints/blob/main/lab_2d_perception_student.ipynb
 
-**Trạng thái hiện tại:** notebook đã điền code và khung Q1–Q12; chưa chạy toàn bộ trên Colab T4. Link trên là đường dẫn dự kiến của bản nộp, chưa xác nhận bản online đã có output. Chưa có số liệu latency, mask SAM hoặc mAP từ lần chạy thật.
+Bản Colab đã thực thi: https://colab.research.google.com/drive/1I0MTnY4Y57XH8Spp4noryFpFoir6dlER
 
-## Phần đã chuẩn bị
+**Trạng thái đồng bộ:** đã hoàn thiện và thực thi trên Colab; đang đưa notebook còn output và hai file kết quả về repo. Link GitHub ở trên chỉ là bản nộp hoàn chỉnh sau khi đồng bộ các file này.
 
-- Tự viết `box_iou`, `nms`, `batched_nms`, `mask_iou`, `polygon_to_mask`, `mask_to_yolo_seg`, `oks`, `joint_angle`.
-- Bonus 1D: hoàn thành `average_precision`; kiểm tra và hình PR sẽ chạy trong notebook.
-- `FLIP_IDX = [0, 1, 2, 3, 7, 6, 5, 4, 10, 11, 8, 9]`, suy ra từ tên keypoint trong [YAML tiger-pose của Ultralytics](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/tiger-pose.yaml). Các cặp là hock sau 4↔7, paw sau 5↔6, wrist trước 8↔10, paw trước 9↔11; bốn điểm trục giữa giữ nguyên.
-- Không đổi bộ kiểm tra, gate, metadata, thứ tự ô hoặc output có sẵn; không sử dụng phao.
-- Khung Q2, Q4–Q9 và Q11 có `<<ĐIỀN SỐ TỪ OUTPUT>>` để ghi kết quả/quan sát thực tế. Không dùng số minh họa trong README thay số đo của mình.
+## Thực thi thật trên Colab
 
-## Chạy và hoàn thiện trên Colab T4
+Đã thực hiện `Runtime → Restart session and run all` trên Tesla T4, không có lỗi Python trong 94 ô của bài lab. Môi trường: Python 3.13.15, torch 2.11.0+cu130, torchvision 0.26.0+cu130, ultralytics 8.4.171; `device = cuda`. Huấn luyện tiger-pose đủ **40 epoch, imgsz=640, batch=16**, seed=0; lần chạy cuối mất **5.8 phút**.
 
-1. Upload `lab_2d_perception_student.ipynb` từ repo local lên Colab, chọn T4 GPU, rồi **Restart session and run all**. Phần 0 phải in `device = cuda` và đủ chín dấu tải thành công.
-2. Phần 3A: tạm đổi `KP_THR = -100`, chạy lại ô vẽ, quan sát đầu gối/mắt cá và hoàn thiện Q7; đưa về `2.0` trước lần chạy toàn bộ cuối.
-3. Phần 4: bảo đảm ô ghi `tiger-pose-anat.yaml` chạy sau ô `FLIP_IDX` và trước train; train đủ **40 epoch, imgsz=640**. Nếu hết bộ nhớ, đổi `batch=16` thành `batch=8`.
-4. Ghi đủ bốn cấu hình latency vào Q2; ghi các quan sát ở Q4–Q6; đọc đồ thị OKS ở Q8 và số người ở Q9. Q11 phải nêu **hai kiểu lỗi thật**, mỗi kiểu có tên ảnh trong sáu ảnh tệ nhất, keypoint/vùng cơ thể, biểu hiện sai và cách sửa cụ thể.
-5. Thay mọi `<<ĐIỀN SỐ TỪ OUTPUT>>`, chạy lại các ô trả lời, rồi chạy toàn bộ một lần cuối để lưu output nhất quán. Chạy `final_report()` và kiểm tra mọi dòng bắt buộc ✅; kiểm tra riêng train đủ 40 epoch vì checklist chỉ kiểm tra sự hiện diện bảng mAP.
-6. Tải notebook **còn output** và `submission.zip`; giải nén sao cho repo có `submission/ket_qua.json` và `submission/autolabel/bus.txt`. Giữ lại báo cáo này; không lồng `submission/submission/`. Chỉ `final_report()` được sinh `ket_qua.json`, không điền bằng tay.
-7. Cập nhật trạng thái báo cáo và link nếu repo/branch thay đổi, đẩy các file lên GitHub public, kiểm tra truy cập khi chưa đăng nhập, rồi nộp URL repo lên VLearn. Không mở PR.
+| Chỉ số trên 53 ảnh val | Giá trị |
+|---|---:|
+| Box mAP50–95 | 0.930349 |
+| Pose mAP50 | 0.995000 |
+| Pose mAP50–95 | 0.457346 |
+| OKS trung bình | 0.745000 |
+| Không phát hiện được hổ | 0/53 |
+| Nghi đảo trái/phải theo phép đổi nhãn kiểm tra | 4/53 |
 
-## Kiểm tra local
+mAP50 cao không đồng nghĩa keypoint định vị chính xác: mAP ở các ngưỡng OKS chặt hơn giảm rõ, còn lỗi tập trung ở bàn chân khi các chân bước/che nhau. Q11 phân tích cụ thể `Frame_31.jpg` và `Frame_51.jpg`, kèm sai số từng khớp và cách cải thiện.
 
-PowerShell: `.venv\Scripts\python.exe tools\run_checks.py`.
+## Latency lần chạy cuối
 
-Script dùng bộ kiểm tra gốc, dữ liệu tổng hợp và YAML của đúng package `ultralytics==8.4.171`, không tải dataset/weights và không tạo `ket_qua.json`. Nó kiểm tra 10 deliverable gồm bonus AP và FLIP_IDX, các ca biên, năm gate, cú pháp Python và schema notebook.
+Trung bình 30 lần trên T4, theo `Results.speed`, đơn vị ms.
 
-Kết quả ngày 06/10/2026: **10/10 deliverable đạt, 38 phép thử gốc đạt, năm gate đạt**, các ca biên và kiểm tra schema/cú pháp đạt. Môi trường CPU: Python 3.11.16, torch 2.14.1+cpu, torchvision 0.29.1+cpu, ultralytics 8.4.171. Kết quả này xác nhận các hàm tự viết; không thay thế output inference hoặc train T4 cần nộp.
+| Cấu hình | Preprocess | Inference | Postprocess | Số box |
+|---|---:|---:|---:|---:|
+| One-to-many + NMS, conf 0.25 | 1.82 | 9.83 | 1.30 | 5 |
+| One-to-many + NMS, conf 0.001 | 1.73 | 9.01 | 1.32 | 203 |
+| One-to-one, conf 0.25 | 1.76 | 9.33 | 0.43 | 5 |
+| One-to-one, conf 0.001 | 1.78 | 9.80 | 0.45 | 204 |
 
-## Bonus 4C (tùy chọn, chưa chạy)
+Hai mức conf đều giảm 0.87 ms postprocess trong lần đo này. Kết quả được ghi đúng như quan sát, không giả định conf 0.001 luôn có chênh lệch lớn nhất.
 
-Nếu làm thêm, đặt `RUN_4C = True` và `TRAIN_IDENTITY = True` ở ô 91; cần thêm một lần train. Ghi bảng hai model trên val gốc/val gương và số liệu thật tại đây sau khi chạy.
+## Segmentation và keypoints
 
-mAP trên val chỉ có hổ quay phải có thể che lỗi `flip_idx` vì không kiểm tra hướng đối xứng và quy ước giải phẫu ở tư thế đó. Val lật gương với nhãn hoán đổi đúng và val thực tế gồm cả hai hướng giúp kiểm tra khả năng tổng quát hóa; nên phân tích thêm sai số từng cặp chân thay vì chỉ nhìn một mAP tổng hợp.
+- Semantic có 8 vùng person, trong khi ảnh có 4 người và Mask R-CNN tìm được 4 người; 63% pixel trong box bus bị gán `train`.
+- Hungarian matching có 5 cặp mask, IoU [0.939, 0.842, 0.932, 0.922, 0.890].
+- SAM tạo 5 object; IoU polygon lưu trong `bus.txt` với mask SAM gốc là [0.970, 0.982, 0.967, 0.978, 0.983]; `check_autolabel` đạt.
+- Prompt A: 47441 pixel, IoU 0.99; prompt B: 2714 pixel, IoU làm tròn 0.00.
+- Đã chạy `KP_THR=-100` và quan sát các khớp chân ngoài ảnh được dự đoán sát đáy khung.
+- Pose trên bus gốc trả 5 box dù thực tế có 4 người; ảnh xoay trả 3 box, thân nghiêng 90°, 94°, 83°.
+- `FLIP_IDX = [0, 1, 2, 3, 7, 6, 5, 4, 10, 11, 8, 9]` được kiểm tra theo tên trong YAML tiger-pose của đúng package.
 
-Chưa thực hiện bài tập về nhà ONNX hoặc auto-label 20–30 ảnh; không tính điểm bonus cho phần chưa chạy.
+## Kiểm tra và bonus
+
+10 deliverable local đạt, gồm 38 phép thử gốc và năm gate; không dùng phao. Checklist `final_report()` trên Colab đạt toàn bộ mục bắt buộc, 12/12 câu hỏi đã hoàn thiện, không còn `<<ĐIỀN SỐ TỪ OUTPUT>>`. `ket_qua.json` và `autolabel/bus.txt` do các ô gốc sinh ra, không sửa số liệu bằng tay.
+
+Bonus 1D đã làm: `average_precision` đạt và có hình PR. Không thực hiện bonus 4C hoặc bài tập về nhà ONNX/auto-label thêm ảnh, nên không yêu cầu điểm cho hai phần này.
+
+Chạy kiểm tra local: `.venv\Scripts\python.exe tools\run_checks.py`.
+
+Sau khi đủ file xuất từ Colab, chạy kiểm tra bản nộp: `.venv\Scripts\python.exe tools\validate_submission.py`.
+
+Chỉ nộp URL repo GitHub public lên VLearn, không mở PR; giữ repo public đến khi có điểm.
