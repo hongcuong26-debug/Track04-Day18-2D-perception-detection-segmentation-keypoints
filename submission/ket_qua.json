@@ -1,0 +1,74 @@
+{
+  "progress": {
+    "box_iou": "ok",
+    "nms": "ok",
+    "batched_nms": "ok",
+    "average_precision": "ok",
+    "mask_iou": "ok",
+    "polygon_to_mask": "ok",
+    "mask_to_yolo_seg": "ok",
+    "autolabel": "ok",
+    "oks": "ok",
+    "joint_angle": "ok",
+    "FLIP_IDX": "ok"
+  },
+  "latency": [
+    {
+      "Cấu hình": "one-to-many + NMS, conf 0.25",
+      "preprocess (ms)": 1.77,
+      "inference (ms)": 9.6,
+      "postprocess (ms)": 1.22,
+      "số box": 5
+    },
+    {
+      "Cấu hình": "one-to-many + NMS, conf 0.001",
+      "preprocess (ms)": 1.78,
+      "inference (ms)": 9.07,
+      "postprocess (ms)": 1.33,
+      "số box": 203
+    },
+    {
+      "Cấu hình": "one-to-one NMS-free, conf 0.25",
+      "preprocess (ms)": 1.72,
+      "inference (ms)": 9.11,
+      "postprocess (ms)": 0.42,
+      "số box": 5
+    },
+    {
+      "Cấu hình": "one-to-one NMS-free, conf 0.001",
+      "preprocess (ms)": 1.93,
+      "inference (ms)": 9.53,
+      "postprocess (ms)": 0.43,
+      "số box": 204
+    }
+  ],
+  "result_4b": {
+    "flip_idx": "giải phẫu",
+    "epochs": 40,
+    "imgsz": 640,
+    "Box mAP50-95": 0.9303488492063492,
+    "Pose mAP50": 0.995,
+    "Pose mAP50-95": 0.4573462529843696,
+    "train (phút)": 4.6
+  },
+  "result_4c": null,
+  "answers": {
+    "Q1": "(a) Ba mức stride 8, 16, 32 trên ảnh 640×480 tạo 80×60 + 40×30 + 20×15 = 6300 dự đoán thô; ít hơn 8400 của ảnh 640×640 vì letterbox giữ hình chữ nhật thay vì pad thành vuông. (b) Nhãn gốc là cxcywh nhưng bị đọc như xywh có gốc trên-trái, nên góc trên-trái bị đặt vào tâm thật và box dịch sang phải w/2, xuống h/2.",
+    "Q2": "Cột postprocess thay đổi nhiều nhất giữa hai head: ở conf 0.25, one-to-many + NMS mất 1.30 ms/5 box còn one-to-one mất 0.43 ms/5 box; ở conf 0.001 lần lượt là 1.32 ms/203 box và 0.45 ms/204 box. Hai mức conf đều giảm 0.87 ms trong lần chạy cuối, nên số đo này chưa cho thấy mức conf thấp có chênh lệch lớn hơn. Về cơ chế, conf thấp và cảnh đông tăng số ứng viên phải so sánh/lọc tuần tự trong NMS, còn head one-to-one giảm phần xử lý đó nên có lợi trên CPU/NPU khó song song hóa NMS.",
+    "Q3": "(a) Hai công nhân có IoU 0.75 vượt ngưỡng NMS 0.7 nên box điểm thấp bị loại, gây đếm thiếu một người. Tăng ngưỡng giúp giữ người đứng sát nhau nhưng giữ thêm box trùng; giảm ngưỡng loại trùng mạnh hơn nhưng dễ loại nhầm người thật. (b) One-to-many cung cấp nhiều mẫu dương và tín hiệu học dày hơn khi train, trong khi one-to-one học ghép mỗi đối tượng với một dự đoán để dùng lúc suy luận không cần NMS.",
+    "Q4": "(a) Semantic cho 8 vùng liên thông person với diện tích [106186, 20307, 1241, 17, 8, 4, 4, 3] pixel, trong khi Mask R-CNN và quan sát ảnh đều có 4 người. Đếm thiếu xảy ra khi hai người chạm nhau thành một vùng; đếm thừa xảy ra khi một người bị che/đứt mask thành nhiều mảnh hoặc có mảnh dự đoán nhiễu. Panoptic bổ sung instance ID riêng cho từng người bên cạnh nhãn semantic nên phân biệt các cá thể. (b) Trong box xe buýt, semantic gán train cho 63% pixel; thân xe dài và dãy cửa sổ tương tự tàu, cùng khác biệt dữ liệu Cityscapes và ảnh bus, có thể gây nhầm lớp.",
+    "Q5": "(a) Prototype dùng chung có độ phân giải thấp hơn ảnh nên vật nhỏ chỉ chiếm vài ô và dễ mất chi tiết biên, trong khi mask 28×28 riêng cho mỗi RoI bị phóng lớn nên vật lớn có thể có biên thô. Trong hình, các mask vẫn bám được thân người và xe buýt nhưng khác nhau ở đường bao và phần chân/mép ảnh; bảng Hungarian có 5 cặp, IoU người lần lượt 0.939, 0.842, 0.922, 0.890 và IoU xe buýt 0.932, nên không có cách nào trùng hoàn toàn với cách kia. (b) Ghép độc lập theo IoU lớn nhất có thể gán hai mask YOLO cho cùng một mask Mask R-CNN; Hungarian tối ưu tổng độ khớp với ràng buộc một-một, tránh tái sử dụng một instance.",
+    "Q6": "(a) Điểm A ở tâm box cho gần toàn bộ người, diện tích 47441 pixel và IoU 0.99 với mask từ box; điểm B ở 80% chiều cao chỉ cho một mảnh nhỏ ở vùng quần/chân, diện tích 2714 pixel và IoU làm tròn 0.00. Một điểm không xác định rõ phạm vi đối tượng, còn box khoanh vùng toàn instance nên an toàn hơn cho auto-label; lần chạy tạo 5 polygon với IoU round-trip [0.970, 0.982, 0.967, 0.978, 0.983]. (b) Dùng SAM trực tiếp khi ít ảnh, cần prompt linh hoạt và chấp nhận độ trễ; khi cần tốc độ hoặc chạy thiết bị biên, dùng SAM tạo nhãn rồi fine-tune YOLO26-seg nhỏ.",
+    "Q7": "Khi chạy với KP_THR=-100 trên zidane.jpg cao 720 pixel, các điểm chân không nhìn thấy xuất hiện sát mép dưới ảnh, một số tụ thành cụm ở đáy khung thay vì ở vị trí đầu gối/mắt cá thật ngoài ảnh. Argmax heatmap vẫn chọn một cực đại trong vùng RoI dù không có bằng chứng cho khớp, nên tọa độ dự đoán không chứng minh khớp đó được nhìn thấy. Mỗi keypoint cần điểm tin cậy để lọc các điểm thiếu bằng chứng; score của Keypoint R-CNN ở đây là logit, còn confidence YOLO là xác suất, nên không dùng chung một ngưỡng số.",
+    "Q8": "Đường người 40×80 cắt OKS=0.5 ở khoảng 7 pixel sai số Gauss σ (giữa hai mẫu 6 và 8 pixel; mẫu 8 pixel đã dưới 0.5). Người 250×500 chưa xuống dưới 0.5 trong khoảng khảo sát 0–30 pixel, và ở 30 pixel còn khoảng 0.65 nên không thể đọc một ngưỡng lớn hơn từ đồ thị này. Sigma mắt nhỏ vì vị trí mắt được xác định chính xác hơn hông; lệch đúng 8 pixel trên người 100×200 cho điểm mắt 0.53 và hông 0.97. Với camera trên cao và người chỉ cao khoảng 80 pixel, vài pixel sai lệch đã đáng kể so với kích thước người và có thể làm OKS giảm mạnh.",
+    "Q9": "(a) Luật thân nghiêng >60° có thể báo nhầm khi người cúi sâu, ngồi hoặc tập thể dục; có thể bỏ sót cú ngã có thân gần thẳng đứng theo góc nhìn camera hoặc vai/hông bị che. (b) Ảnh gốc được model phát hiện 5 box người (trong ảnh thực tế có 4 người), nhưng ảnh xoay 90° chỉ có 3 box; ba thân nghiêng lần lượt 90°, 94°, 83° đều kích hoạt luật, còn tư thế ngang khác phân phối train chủ yếu có người đứng nên khả năng phát hiện giảm. (c) Hệ thống thật cần tracking và diễn biến theo thời gian, kiểm tra confidence/visibility, kết hợp vận tốc và độ cao thân, cùng cơ chế xác nhận cảnh báo hoặc nhiều camera.",
+    "Q10": "Val chỉ có hổ quay phải nên mAP trên val gốc có thể vẫn cao dù flip_idx đồng nhất, không bảo đảm phát hiện được lỗi quy ước trái/phải. Khi triển khai gặp hổ quay trái hoặc ảnh lật gương, model có thể gán sai các chân giải phẫu; augmentation lật với mapping đồng nhất cũng tạo nhãn trái/phải sai. Cần đánh giá thêm val lật gương và dữ liệu đủ hai hướng, đồng thời dùng mapping hoán đổi từng cặp cùng tên left_* và right_*.",
+    "Q11": "Ở Frame_31.jpg (OKS 0.631), chân sau đang bước có vị trí right_hind_paw bị kéo về giữa hai chân thay vì bàn chân đỏ ở phía sau; sai số chuẩn hóa của điểm này là 0.468, trong khi withers chỉ 0.006. Tôi sẽ bổ sung và lấy mẫu nhiều hơn các pha sải chân sau, kiểm tra nhãn chân bị che và dùng augmentation che khuất có kiểm soát để model không chỉ hồi quy về tư thế trung bình. Ở Frame_51.jpg (OKS 0.634), đầu mút chân trước duỗi ra bị đặt gần cụm bàn chân còn lại: left_front_paw có sai số 0.562 nhưng left_front_wrist chỉ 0.088, cho thấy lỗi độ dài/hướng đoạn cổ chân–bàn chân dù khớp phía trên khá gần nhãn. Tôi sẽ bổ sung ảnh chân trước duỗi rõ và ràng buộc cấu trúc/độ dài xương theo kích thước hổ, đồng thời kiểm tra cặp trái/phải từng chân để giảm nhập các bàn chân vào cùng một vị trí.",
+    "Q12": "Dùng cùng sigma 1/12 cho mọi keypoint không phản ánh độ mơ hồ khác nhau: mũi thường xác định rõ hơn gốc đuôi, nên cùng sai số pixel không nhất thiết nên bị phạt như nhau. Tôi sẽ cho nhiều người gán nhãn độc lập cùng một tập ảnh, hoặc gán nhãn lặp, rồi đo độ phân tán cho từng keypoint và chuẩn hóa khoảng cách theo căn diện tích đối tượng. Từ sai số chuẩn hóa đó ước lượng sigma riêng theo một quy trình nhất quán, kiểm tra trên tập giữ lại và công bố sigma để các model được so sánh công bằng."
+  },
+  "env": {
+    "device": "cuda",
+    "torch": "2.11.0+cu130",
+    "ultralytics": "8.4.171"
+  }
+}

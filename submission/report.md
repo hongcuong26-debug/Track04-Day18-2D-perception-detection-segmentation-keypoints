@@ -6,11 +6,11 @@ Link notebook đã chạy: https://github.com/hongcuong26-debug/Track04-Day18-2D
 
 Bản Colab đã thực thi: https://colab.research.google.com/drive/1I0MTnY4Y57XH8Spp4noryFpFoir6dlER
 
-**Trạng thái đồng bộ:** đã hoàn thiện và thực thi trên Colab; đang đưa notebook còn output và hai file kết quả về repo. Link GitHub ở trên chỉ là bản nộp hoàn chỉnh sau khi đồng bộ các file này.
+**Trạng thái đồng bộ:** bài đã chạy trên Colab; `ket_qua.json` và `autolabel/bus.txt` đã có trong repo local. Notebook local hiện chưa có execution count/output, nên cần thay bằng file `.ipynb` tải từ Colab trước khi hoàn tất bản nộp GitHub.
 
 ## Thực thi thật trên Colab
 
-Đã thực hiện `Runtime → Restart session and run all` trên Tesla T4, không có lỗi Python trong 94 ô của bài lab. Môi trường: Python 3.13.15, torch 2.11.0+cu130, torchvision 0.26.0+cu130, ultralytics 8.4.171; `device = cuda`. Huấn luyện tiger-pose đủ **40 epoch, imgsz=640, batch=16**, seed=0; lần chạy cuối mất **5.8 phút**.
+Đã thực hiện `Runtime → Restart session and run all` trên Tesla T4, không có lỗi Python trong 94 ô của bài lab. Môi trường: Python 3.13.15, torch 2.11.0+cu130, torchvision 0.26.0+cu130, ultralytics 8.4.171; `device = cuda`. Huấn luyện tiger-pose đủ **40 epoch, imgsz=640, batch=16**, seed=0; lần chạy ghi trong `ket_qua.json` mất **4.6 phút**.
 
 | Chỉ số trên 53 ảnh val | Giá trị |
 |---|---:|
@@ -29,10 +29,10 @@ Trung bình 30 lần trên T4, theo `Results.speed`, đơn vị ms.
 
 | Cấu hình | Preprocess | Inference | Postprocess | Số box |
 |---|---:|---:|---:|---:|
-| One-to-many + NMS, conf 0.25 | 1.82 | 9.83 | 1.30 | 5 |
-| One-to-many + NMS, conf 0.001 | 1.73 | 9.01 | 1.32 | 203 |
-| One-to-one, conf 0.25 | 1.76 | 9.33 | 0.43 | 5 |
-| One-to-one, conf 0.001 | 1.78 | 9.80 | 0.45 | 204 |
+| One-to-many + NMS, conf 0.25 | 1.77 | 9.60 | 1.22 | 5 |
+| One-to-many + NMS, conf 0.001 | 1.78 | 9.07 | 1.33 | 203 |
+| One-to-one, conf 0.25 | 1.72 | 9.11 | 0.42 | 5 |
+| One-to-one, conf 0.001 | 1.93 | 9.53 | 0.43 | 204 |
 
 Hai mức conf đều giảm 0.87 ms postprocess trong lần đo này. Kết quả được ghi đúng như quan sát, không giả định conf 0.001 luôn có chênh lệch lớn nhất.
 
@@ -48,12 +48,12 @@ Hai mức conf đều giảm 0.87 ms postprocess trong lần đo này. Kết qu�
 
 ## Kiểm tra và bonus
 
-10 deliverable local đạt, gồm 38 phép thử gốc và năm gate; không dùng phao. Checklist `final_report()` trên Colab đạt toàn bộ mục bắt buộc, 12/12 câu hỏi đã hoàn thiện, không còn `<<ĐIỀN SỐ TỪ OUTPUT>>`. `ket_qua.json` và `autolabel/bus.txt` do các ô gốc sinh ra, không sửa số liệu bằng tay.
+Theo checklist `final_report()` trên Colab, toàn bộ mục bắt buộc đạt; 12/12 câu hỏi đã hoàn thiện, không còn `<<ĐIỀN SỐ TỪ OUTPUT>>`. `ket_qua.json` và `autolabel/bus.txt` do các ô notebook sinh ra, không sửa số liệu bằng tay. Validator local hiện chưa đạt vì notebook trong repo chưa phải bản đã chạy và chưa có output.
 
 Bonus 1D đã làm: `average_precision` đạt và có hình PR. Không thực hiện bonus 4C hoặc bài tập về nhà ONNX/auto-label thêm ảnh, nên không yêu cầu điểm cho hai phần này.
 
 Chạy kiểm tra local: `.venv\Scripts\python.exe tools\run_checks.py`.
 
-Sau khi đủ file xuất từ Colab, chạy kiểm tra bản nộp: `.venv\Scripts\python.exe tools\validate_submission.py`.
+Sau khi thay notebook bằng bản đã chạy tải từ Colab, chạy kiểm tra bản nộp: `.venv\Scripts\python.exe tools\validate_submission.py`.
 
 Chỉ nộp URL repo GitHub public lên VLearn, không mở PR; giữ repo public đến khi có điểm.
