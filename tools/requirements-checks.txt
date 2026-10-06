@@ -1,0 +1,9 @@
+torch
+torchvision
+opencv-python
+numpy
+matplotlib
+pyyaml
+ipython
+nbformat
+ultralytics==8.4.171
